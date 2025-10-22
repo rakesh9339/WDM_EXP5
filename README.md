@@ -22,24 +22,26 @@ The Boolean model in Information Retrieval (IR) is a fundamental model used for 
     <p>c) For each term in the query, it retrieves documents containing that term and performs Boolean operations (AND, OR, NOT) based on the query's structure.
 
 ### Program:
+```
+import numpy as np
+import pandas as pd
 
-    import numpy as np
-    import pandas as pd
-    class BooleanRetrieval:
-        def __init__(self):
-            self.index = {}
-            self.documents_matrix = None
+class BooleanRetrieval:
+    def __init__(self):
+        self.index = {}
+        self.documents_matrix = None
+        self.doc_ids = []
 
     def index_document(self, doc_id, text):
         terms = text.lower().split()
         print("Document -", doc_id, terms)
-
         for term in terms:
             if term not in self.index:
                 self.index[term] = set()
             self.index[term].add(doc_id)
 
     def create_documents_matrix(self, documents):
+        self.doc_ids = list(documents.keys())
         terms = list(self.index.keys())
         num_docs = len(documents)
         num_terms = len(terms)
@@ -54,7 +56,7 @@ The Boolean model in Information Retrieval (IR) is a fundamental model used for 
                     self.documents_matrix[i, term_id] = 1
 
     def print_documents_matrix_table(self):
-        df = pd.DataFrame(self.documents_matrix, columns=self.index.keys())
+        df = pd.DataFrame(self.documents_matrix, columns=self.index.keys(), index=self.doc_ids)
         print(df)
 
     def print_all_terms(self):
@@ -62,8 +64,25 @@ The Boolean model in Information Retrieval (IR) is a fundamental model used for 
         print(list(self.index.keys()))
 
     def boolean_search(self, query):
-        # TYPE YOUR CODE HERE
+        query = query.lower().split()
+        result_set = set(self.doc_ids)  # Start with all documents
+        operator = None
 
+        for token in query:
+            if token in ("and", "or", "not"):
+                operator = token
+            else:
+                # Get documents containing the term
+                docs_with_term = self.index.get(token, set())
+                if operator is None or operator == "and":
+                    result_set = result_set & docs_with_term
+                elif operator == "or":
+                    result_set = result_set | docs_with_term
+                elif operator == "not":
+                    result_set = result_set - docs_with_term
+                operator = None  # Reset operator after use
+
+        return result_set
 if __name__ == "__main__":
     indexer = BooleanRetrieval()
 
@@ -86,7 +105,7 @@ if __name__ == "__main__":
         print(f"Results for '{query}': {results}")
     else:
         print("No results found for the query.")
-
+```
 
 ### Output:
 ![WhatsApp Image 2025-09-25 at 16 09 24_b2d09484](https://github.com/user-attachments/assets/8532b58a-0220-4447-a455-9f12a2cd4c51)
